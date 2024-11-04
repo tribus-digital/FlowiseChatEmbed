@@ -1016,6 +1016,33 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
     return false;
   };
 
+  // Function to add UTM parameters to the URL
+  const addUTMParameters = (url: string | URL) => {
+    try {
+      const urlObj = new URL(url);
+      urlObj.searchParams.append('utm_source', 'chatbot');
+      urlObj.searchParams.append('utm_medium', 'bot-referral');
+      urlObj.searchParams.append('utm_campaign', 'wd-chatbot');
+      return urlObj.toString();
+    } catch (error) {
+      return url;
+    }
+  };
+
+  const handleSourceClick = (src: { metadata: { source: string; }; }) => {
+    createEffect(() => {
+      const URL = isValidURL(src.metadata.source);
+      if (URL) {
+        // Add UTM parameters to the source URL
+        const urlWithUTM = addUTMParameters(src.metadata.source);
+        window.open(urlWithUTM, '_blank');
+      } else {
+        setSourcePopupSrc(src);
+        setSourcePopupOpen(true);
+      }
+    });
+  };
+
   createEffect(
     // listen for changes in previews
     on(previews, (uploads) => {
@@ -1210,14 +1237,7 @@ export const Bot = (botProps: BotProps & { class?: string }) => {
                                 <SourceBubble
                                   pageContent={URL ? URL.pathname : src.pageContent}
                                   metadata={src.metadata}
-                                  onSourceClick={() => {
-                                    if (URL) {
-                                      window.open(src.metadata.source, '_blank');
-                                    } else {
-                                      setSourcePopupSrc(src);
-                                      setSourcePopupOpen(true);
-                                    }
-                                  }}
+                                  onSourceClick={() => handleSourceClick(src)}
                                 />
                               );
                             }}
